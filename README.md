@@ -1,1 +1,1 @@
-# GenAI-Documenting-Code-Use Case #12 - pause
+# GenAI-Documenting-Code-Use Case #12 - resume
