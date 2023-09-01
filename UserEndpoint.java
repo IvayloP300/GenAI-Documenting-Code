@@ -1,14 +1,16 @@
+package com.softserve.taf.services.placeholder.endpoints;
+
+import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.RequestSpecification;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import com.softserve.taf.models.enums.HttpStatus;
+import com.softserve.taf.models.placeholder.user.UserDto;
+import com.softserve.taf.services.common.AbstractWebEndpoint;
+
 /**
- * Represents the endpoint functionalities for users.
- * Provides methods to create, update, retrieve, and list users.
- *
- * <p>Example Usage:
- * <pre>
- * RequestSpecification spec = ...; // Obtain a request specification
- * UserEndpoint endpoint = new UserEndpoint(spec);
- * UserDto newUser = new UserDto(...); // Create a user DTO
- * endpoint.create(newUser);
- * </pre>
+ * The UserEndpoint class provides methods to interact with the user endpoint of an API.
  */
 public class UserEndpoint extends AbstractWebEndpoint {
 
@@ -16,90 +18,179 @@ public class UserEndpoint extends AbstractWebEndpoint {
     private static final String USERS_END = "/users";
     private static final String USERS_RESOURCE_END = "/users/{userID}";
 
+    /**
+     * Constructor for initializing the UserEndpoint with a specific request specification.
+     *
+     * Usage Example:
+     * <pre>{@code
+     * RequestSpecification spec = new RequestSpecBuilder().build();
+     * UserEndpoint endpoint = new UserEndpoint(spec);
+     * }</pre>
+     *
+     * @param specification The request specification to use for API interactions.
+     */
     public UserEndpoint(RequestSpecification specification) {
         super(specification);
     }
 
     /**
-     * Creates a new user.
+     * Creates a new user using the provided UserDto object.
+     * Expects a CREATED HTTP status in response.
      *
-     * @param userDto The data of the user to be created.
-     * @return A DTO representing the created user.
+     * Usage Example:
+     * <pre>{@code
+     * UserDto newUser = new UserDto("JohnDoe", "johndoe@example.com");
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
+     * UserDto createdUser = endpoint.create(newUser);
+     * }</pre>
      *
-     * <p>Example:
-     * <pre>
-     * UserDto user = new UserDto(...); // Provide the necessary details
-     * UserDto createdUser = endpoint.create(user);
-     * </pre>
+     * @param userDto The user data to create.
+     * @return A UserDto object of the created user.
      */
     public UserDto create(UserDto userDto) {
-        return create(userDto, HttpStatus.CREATED).extract().as(UserDto.class);
-    }
-
-    public ValidatableResponse create(UserDto userDto, HttpStatus status) {
-        LOGGER.info("Create new User");
-        return post(this.specification, USERS_END, userDto).statusCode(status.getCode());
+        return create(userDto, HttpStatus.CREATED)
+            .extract().as(UserDto.class);
     }
 
     /**
-     * Updates an existing user by its ID.
+     * Creates a new user and validates the response status.
      *
-     * @param id       The ID of the user to be updated.
-     * @param userDto  The updated data of the user.
-     * @return A DTO representing the updated user.
+     * Usage Example:
+     * <pre>{@code
+     * UserDto newUser = new UserDto("JohnDoe", "johndoe@example.com");
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
+     * ValidatableResponse response = endpoint.create(newUser, HttpStatus.CREATED);
+     * response.assertThat().body("username", equalTo("JohnDoe"));
+     * }</pre>
      *
-     * <p>Example:
-     * <pre>
-     * String userId = "123"; // ID of the user to update
-     * UserDto updatedData = new UserDto(...); // Provide the new details
-     * UserDto updatedUser = endpoint.update(userId, updatedData);
-     * </pre>
+     * @param userDto The user data to create.
+     * @param status The expected HTTP status of the response.
+     * @return A ValidatableResponse object for further validation.
      */
-    public UserDto update(int id, UserDto userDto) {
-        return update(userDto, id, HttpStatus.OK).extract().as(UserDto.class);
+    public ValidatableResponse create(UserDto userDto, HttpStatus status) {
+        LOGGER.info("Create new User");
+        return post(
+            this.specification,
+            USERS_END,
+            userDto)
+            .statusCode(status.getCode());
     }
 
+    /**
+     * Updates an existing user by its ID using the provided UserDto object.
+     * Expects an OK HTTP status in response.
+     *
+     * Usage Example:
+     * <pre>{@code
+     * UserDto updatedUser = new UserDto("JohnSmith", "johnsmith@example.com");
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
+     * UserDto result = endpoint.update(10, updatedUser);
+     * }</pre>
+     *
+     * @param id The ID of the user to update.
+     * @param userDto The user data to update with.
+     * @return A UserDto object of the updated user.
+     */
+    public UserDto update(int id, UserDto userDto) {
+        return update(userDto, id, HttpStatus.OK)
+            .extract().as(UserDto.class);
+    }
+
+    /**
+     * Updates an existing user by its ID and validates the response status.
+     *
+     * Usage Example:
+     * <pre>{@code
+     * UserDto updatedUser = new UserDto("JohnSmith", "johnsmith@example.com");
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
+     * ValidatableResponse response = endpoint.update(updatedUser, 10, HttpStatus.OK);
+     * response.assertThat().body("username", equalTo("JohnSmith"));
+     * }</pre>
+     *
+     * @param userDto The user data to update with.
+     * @param id The ID of the user to update.
+     * @param status The expected HTTP status of the response.
+     * @return A ValidatableResponse object for further validation.
+     */
     public ValidatableResponse update(UserDto userDto, int id, HttpStatus status) {
         LOGGER.info("Update User by id [{}]", id);
-        return put(this.specification, USERS_RESOURCE_END, userDto, id).statusCode(status.getCode());
+        return put(
+            this.specification,
+            USERS_RESOURCE_END,
+            userDto,
+            id)
+            .statusCode(status.getCode());
     }
 
     /**
      * Retrieves a user by its ID.
+     * Expects an OK HTTP status in response.
+     *
+     * Usage Example:
+     * <pre>{@code
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
+     * UserDto fetchedUser = endpoint.getById("5");
+     * }</pre>
      *
      * @param id The ID of the user to be retrieved.
-     * @return A DTO representing the retrieved user.
-     *
-     * <p>Example:
-     * <pre>
-     * String userId = "123"; // ID of the user to retrieve
-     * UserDto retrievedUser = endpoint.getById(userId);
-     * </pre>
+     * @return A UserDto object of the retrieved user.
      */
     public UserDto getById(String id) {
-        return getById(id, HttpStatus.OK).extract().as(UserDto.class);
-    }
-
-    public ValidatableResponse getById(String id, HttpStatus status) {
-        LOGGER.info("Get User by id [{}]", id);
-        return get(this.specification, USERS_RESOURCE_END, id).statusCode(status.getCode());
+        return getById(id, HttpStatus.OK)
+            .extract().as(UserDto.class);
     }
 
     /**
-     * Retrieves all users.
+     * Retrieves a user by its ID and validates the response status.
      *
-     * @return A list of DTOs representing all users.
+     * Usage Example:
+     * <pre>{@code
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
+     * ValidatableResponse response = endpoint.getById("5", HttpStatus.OK);
+     * response.assertThat().body("id", equalTo(5));
+     * }</pre>
      *
-     * <p>Example:
-     * <pre>
+     * @param id The ID of the user to be retrieved.
+     * @param status The expected HTTP status of the response.
+     * @return A ValidatableResponse object for further validation.
+     */
+    public ValidatableResponse getById(String id, HttpStatus status) {
+        LOGGER.info("Get User by id [{}]", id);
+        return get(
+            this.specification,
+            USERS_RESOURCE_END,
+            id)
+            .statusCode(status.getCode());
+    }
+
+    /**
+     * Retrieves all users from the API.
+     *
+     * Usage Example:
+     * <pre>{@code
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
      * List<UserDto> allUsers = endpoint.getAll();
-     * allUsers.forEach(user -> System.out.println(user.getName()));
-     * </pre>
+     * }</pre>
+     *
+     * @return A List of UserDto objects representing all users.
      */
     public List<UserDto> getAll() {
         return List.of(getAll(HttpStatus.OK).extract().as(UserDto[].class));
     }
 
+    /**
+     * Retrieves all users from the API and validates the response status.
+     *
+     * Usage Example:
+     * <pre>{@code
+     * UserEndpoint endpoint = new UserEndpoint(requestSpec);
+     * ValidatableResponse allUsersResponse = endpoint.getAll(HttpStatus.OK);
+     * allUsersResponse.assertThat().body("size()", greaterThan(0));
+     * }</pre>
+     *
+     * @param status The expected HTTP status of the response.
+     * @return A ValidatableResponse object for further validation.
+     */
     public ValidatableResponse getAll(HttpStatus status) {
         LOGGER.info("Get all Users");
         ValidatableResponse response = get(this.specification, USERS_END);
